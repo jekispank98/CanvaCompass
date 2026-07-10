@@ -12,6 +12,9 @@ navigationUiKtx = "2.9.7"
 lifecycle = "2.10.0"
 composeBom = "2026.03.01"
 kotlin = "2.1.0"
+koin = "4.2.2"
+koin-ksp = "2.3.1"
+ksp = "2.0.21-1.0.28"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -31,6 +34,14 @@ androidx-ui-tooling-preview = { group = "androidx.compose.ui", name = "ui-toolin
 androidx-material3 = { group = "androidx.compose.material3", name = "material3" }
 androidx-activity-compose = { group = "androidx.activity", name = "activity-compose", version = "1.11.0" }
 
+#Koin
+koin-bom = { group = "io.insert-koin", name = "koin-bom", version.ref = "koin" }
+koin-annotations = { group = "io.insert-koin", name = "koin-annotations", version.ref = "koin" }
+koin-android = { group = "io.insert-koin", name = "koin-android", version.ref = "koin" }
+koin-compose = { group = "io.insert-koin", name =  "koin-androidx-compose", version.ref = "koin" }
+koin-compiler = { group = "io.insert-koin", name = "koin-ksp-compiler", version.ref = "koin-ksp" }
+
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
 compose-compiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
+ksp = { id = "com.google.devtools.ksp", version.ref = "ksp"}

@@ -8,5 +8,5 @@
     <string name="previous">Previous</string>
     <string name="xml">XML</string>
     <string name="compose">Compose</string>
-
+    <string name="lorem_ipsum">Lorem ipsum dolor sit amet, consectetur adipiscing elit.</string>
 </resources>
