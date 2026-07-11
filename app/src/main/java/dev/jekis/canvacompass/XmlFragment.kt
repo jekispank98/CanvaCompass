@@ -1,15 +1,12 @@
 package dev.jekis.canvacompass
 
 import android.os.Bundle
-import android.os.Handler
-import android.os.HandlerThread
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.setFragmentResultListener
 import androidx.fragment.app.viewModels
-import androidx.lifecycle.lifecycleScope
 import dev.jekis.canvacompass.databinding.FragmentXmlBinding
 
 private const val LISTENER_KEY = "XmlFragmentListenerKey"
@@ -17,10 +14,8 @@ class XmlFragment : Fragment() {
 
     private var _binding: FragmentXmlBinding? = null
     private val binding get() = _binding!!
-    
-    private val viewModel: XmlViewModel by viewModels()
 
-    private val handlerThread = HandlerThread("")
+    private val viewModel: XmlViewModel by viewModels()
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
