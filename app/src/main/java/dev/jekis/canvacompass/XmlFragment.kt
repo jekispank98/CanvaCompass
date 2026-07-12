@@ -7,7 +7,8 @@ import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.setFragmentResultListener
 import dev.jekis.canvacompass.databinding.FragmentXmlBinding
-import org.koin.androidx.viewmodel.ext.android.viewModel
+import dev.jekis.canvacompass.presentation.CompassViewModel
+import org.koin.androidx.viewmodel.ext.android.activityViewModel
 
 private const val LISTENER_KEY = "XmlFragmentListenerKey"
 class XmlFragment : Fragment() {
@@ -15,7 +16,7 @@ class XmlFragment : Fragment() {
     private var _binding: FragmentXmlBinding? = null
     private val binding get() = _binding!!
 
-    private val viewModel: XmlViewModel by viewModel()
+    private val viewModel: CompassViewModel by activityViewModel()
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,

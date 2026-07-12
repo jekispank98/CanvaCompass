@@ -1,6 +1,12 @@
 package dev.jekis.canvacompass.data
 
+import android.content.Context
 import android.hardware.SensorManager
+import android.hardware.display.DisplayManager
+import android.os.Build
+import android.view.Display
+import android.view.Surface
+import android.view.WindowManager
 import dev.jekis.canvacompass.data.datasource.sensors.AccelerometerSensor
 import dev.jekis.canvacompass.data.datasource.sensors.MagnetometerSensor
 import dev.jekis.canvacompass.data.datasource.sensors.RotationVectorSensor
@@ -21,7 +27,8 @@ import org.koin.core.annotation.Single
 private const val DATA_INTERVAL = 40L
 @Single
 class SensorRepositoryImpl(
-    private val sensorManager: SensorManager
+    private val sensorManager: SensorManager,
+    private val context: Context
 ) : SensorRepository {
     @OptIn(FlowPreview::class)
     override fun fetchOrientationData(): Flow<CompassOrientation> {
@@ -62,6 +69,50 @@ class SensorRepositoryImpl(
             .sample(DATA_INTERVAL)
     }
 
+    private fun getScreenRotation(): Int {
+        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            val displayManager = context.getSystemService(Context.DISPLAY_SERVICE) as DisplayManager
+            displayManager.getDisplay(Display.DEFAULT_DISPLAY)?.rotation ?: Surface.ROTATION_0
+        } else {
+            @Suppress("DEPRECATION")
+            val windowManager = context.getSystemService(Context.WINDOW_SERVICE) as WindowManager
+            windowManager.defaultDisplay.rotation
+        }
+    }
+
+    private fun remapMatrixBasedOnRotation(rotationMatrix: FloatArray): FloatArray {
+        val remappedMatrix = FloatArray(9)
+        val worldAxisForDeviceAxisX: Int
+        val worldAxisForDeviceAxisY: Int
+
+        when (getScreenRotation()) {
+            Surface.ROTATION_90 -> {
+                worldAxisForDeviceAxisX = SensorManager.AXIS_Y
+                worldAxisForDeviceAxisY = SensorManager.AXIS_MINUS_X
+            }
+            Surface.ROTATION_180 -> {
+                worldAxisForDeviceAxisX = SensorManager.AXIS_MINUS_X
+                worldAxisForDeviceAxisY = SensorManager.AXIS_MINUS_Y
+            }
+            Surface.ROTATION_270 -> {
+                worldAxisForDeviceAxisX = SensorManager.AXIS_MINUS_Y
+                worldAxisForDeviceAxisY = SensorManager.AXIS_X
+            }
+            else -> { // Surface.ROTATION_0
+                worldAxisForDeviceAxisX = SensorManager.AXIS_X
+                worldAxisForDeviceAxisY = SensorManager.AXIS_Y
+            }
+        }
+
+        SensorManager.remapCoordinateSystem(
+            rotationMatrix,
+            worldAxisForDeviceAxisX,
+            worldAxisForDeviceAxisY,
+            remappedMatrix
+        )
+        return remappedMatrix
+    }
+
     private fun fuseFromRotationVector(values: FloatArray): CompassOrientation {
         val rotationMatrix = FloatArray(9)
         val orientationAngles = FloatArray(3)
@@ -69,7 +120,9 @@ class SensorRepositoryImpl(
         if (values.isNotEmpty()) {
             SensorManager.getRotationMatrixFromVector(rotationMatrix, values)
         }
-        SensorManager.getOrientation(rotationMatrix, orientationAngles)
+
+        val remappedMatrix = remapMatrixBasedOnRotation(rotationMatrix)
+        SensorManager.getOrientation(remappedMatrix, orientationAngles)
 
         return CompassOrientation(
             azimuth = Math.toDegrees(orientationAngles[0].toDouble()).toFloat().normalizeAzimuth(),
@@ -96,7 +149,8 @@ class SensorRepositoryImpl(
             // или в near-magnetic-pole сингулярности — нужно решить, что возвращать в этом случае
         }
 
-        SensorManager.getOrientation(rotationMatrix, orientationAngles)
+        val remappedMatrix = remapMatrixBasedOnRotation(rotationMatrix)
+        SensorManager.getOrientation(remappedMatrix, orientationAngles)
 
         return CompassOrientation(
             azimuth = Math.toDegrees(orientationAngles[0].toDouble()).toFloat().normalizeAzimuth(),
