@@ -5,12 +5,14 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
-import androidx.fragment.app.setFragmentResultListener
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import dev.jekis.canvacompass.databinding.FragmentXmlBinding
 import dev.jekis.canvacompass.presentation.CompassViewModel
+import kotlinx.coroutines.launch
 import org.koin.androidx.viewmodel.ext.android.activityViewModel
 
-private const val LISTENER_KEY = "XmlFragmentListenerKey"
 class XmlFragment : Fragment() {
 
     private var _binding: FragmentXmlBinding? = null
@@ -23,17 +25,20 @@ class XmlFragment : Fragment() {
         savedInstanceState: Bundle?
     ): View {
         _binding = FragmentXmlBinding.inflate(inflater, container, false)
-        val fragmentListener = { requestKey: String, bundle: Bundle ->
-            val args = bundle.get(requestKey)
-            println(args)
-        }
-        setFragmentResultListener(requestKey = LISTENER_KEY, fragmentListener)
         return binding.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        viewModel
+
+
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModel.uiState.collect { state ->
+                    binding.compassView.setAzimuth(state.azimuth)
+                }
+            }
+        }
     }
 
     override fun onDestroyView() {
