@@ -26,6 +26,7 @@ import androidx.compose.ui.text.drawText
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dev.jekis.canvacompass.presentation.CompassViewModel
@@ -73,7 +74,7 @@ fun CompassScreenContent(
         Canvas(modifier = modifier.fillMaxSize()) {
             val centerX = size.width / 2
             val centerY = size.height / 2
-            val padding = 16f
+            val padding = 16.dp.toPx()
             val radius = (size.minDimension / 2) - padding
 
             val azimuthInRadians = Math.toRadians(-animatedAzimuth.toDouble())
@@ -221,12 +222,7 @@ fun CompassScreenContent(
 
             /* Gray divider */
             val grayDividerWidth = 30f
-            val dummyTextLayout = textMeasurer.measure(
-                text = "360", style = TextStyle(
-                    color = Color.White, fontSize = 10.sp, fontWeight = FontWeight.Bold
-                )
-            )
-            val textHeight = dummyTextLayout.size.height.toFloat()
+            val textHeight = 10.sp.toPx()
             val textRadius = thirtyDegreeSegmentRadius - roundScaleLineLength - textPadding
             val textInnerBoundary = textRadius - (textHeight / 2f) - 4f
             val grayDividerRadius = textInnerBoundary - (grayDividerWidth / 2f)
