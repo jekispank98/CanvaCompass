@@ -7,7 +7,6 @@ import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.ui.AppBarConfiguration
 import androidx.navigation.ui.navigateUp
 import androidx.navigation.ui.setupActionBarWithNavController
-import com.google.android.material.tabs.TabLayout
 import dev.jekis.canvacompass.databinding.ActivityMainBinding
 
 class MainActivity : AppCompatActivity() {
@@ -23,39 +22,46 @@ class MainActivity : AppCompatActivity() {
         setContentView(binding.root)
 
         setSupportActionBar(binding.toolbar)
+        supportActionBar?.setDisplayShowTitleEnabled(false)
 
         val navHostFragment = supportFragmentManager.findFragmentById(R.id.nav_host_fragment_content_main) as NavHostFragment
         navController = navHostFragment.navController
 
-        appBarConfiguration = AppBarConfiguration(navController.graph)
+        appBarConfiguration = AppBarConfiguration(setOf(R.id.XmlFragment, R.id.ComposeFragment))
         setupActionBarWithNavController(navController, appBarConfiguration)
         setupTabs()
     }
 
     private fun setupTabs() {
-        val tabLayout = binding.tabLayout
-        val xmlTab = tabLayout.newTab().setText(R.string.xml)
-        val composeTab = tabLayout.newTab().setText(R.string.compose)
-
-        tabLayout.addTab(xmlTab)
-        tabLayout.addTab(composeTab)
-
-        tabLayout.addOnTabSelectedListener(object : TabLayout.OnTabSelectedListener {
-            override fun onTabSelected(tab: TabLayout.Tab?) {
-                when (tab?.position) {
-                    0 -> navController.navigate(R.id.XmlFragment)
-                    1 -> navController.navigate(R.id.ComposeFragment)
+        val toggleLayout = binding.toggleButton
+        toggleLayout.addOnButtonCheckedListener { _, checkedId, isChecked ->
+            if (isChecked) {
+                when (checkedId) {
+                    R.id.button_xml -> {
+                        if (navController.currentDestination?.id != R.id.XmlFragment) {
+                            navController.navigate(R.id.XmlFragment)
+                        }
+                    }
+                    R.id.button_compose -> {
+                        if (navController.currentDestination?.id != R.id.ComposeFragment) {
+                            navController.navigate(R.id.ComposeFragment)
+                        }
+                    }
                 }
             }
-
-            override fun onTabUnselected(tab: TabLayout.Tab?) {}
-            override fun onTabReselected(tab: TabLayout.Tab?) {}
-        })
-
+        }
         navController.addOnDestinationChangedListener { _, destination, _ ->
             when (destination.id) {
-                R.id.XmlFragment -> tabLayout.selectTab(xmlTab)
-                R.id.ComposeFragment -> tabLayout.selectTab(composeTab)
+                R.id.XmlFragment -> {
+                    if (toggleLayout.checkedButtonId != R.id.button_xml) {
+                        toggleLayout.check(R.id.button_xml)
+                    }
+                }
+                R.id.ComposeFragment -> {
+                    if (toggleLayout.checkedButtonId != R.id.button_compose) {
+                        toggleLayout.check(R.id.button_compose)
+                    }
+                }
             }
         }
     }
