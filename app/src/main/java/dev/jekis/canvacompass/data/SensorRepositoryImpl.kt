@@ -3,10 +3,10 @@ package dev.jekis.canvacompass.data
 import android.content.Context
 import android.hardware.SensorManager
 import android.hardware.display.DisplayManager
-import android.os.Build
 import android.view.Display
 import android.view.Surface
-import android.view.WindowManager
+import androidx.annotation.VisibleForTesting
+import androidx.core.content.getSystemService
 import dev.jekis.canvacompass.data.datasource.sensors.AccelerometerSensor
 import dev.jekis.canvacompass.data.datasource.sensors.MagnetometerSensor
 import dev.jekis.canvacompass.data.datasource.sensors.RotationVectorSensor
@@ -28,31 +28,31 @@ private const val DATA_INTERVAL = 40L
 @Single
 class SensorRepositoryImpl(
     private val sensorManager: SensorManager,
-    private val context: Context
+    private val context: Context,
+    private val accelerometerSensor: AccelerometerSensor,
+    private val magnetometerSensor: MagnetometerSensor,
+    private val rotationVectorSensor: RotationVectorSensor,
+    private val rotationProvider: () -> Int = { getScreenRotation(context) }
 ) : SensorRepository {
+
     @OptIn(FlowPreview::class)
     override fun fetchOrientationData(): Flow<CompassOrientation> {
-
-        val accelerometer = AccelerometerSensor(sensorManager)
-        val magnetometer = MagnetometerSensor(sensorManager)
-        val rotationVector = RotationVectorSensor(sensorManager)
-
-        val orientationFlow = if (rotationVector.isAvailable()) {
-            rotationVector.sensorState
+        val orientationFlow = if (rotationVectorSensor.isAvailable()) {
+            rotationVectorSensor.sensorState
                 .filter { it.values.isNotEmpty() }
                 .conflate()
                 .map { fuseFromRotationVector(it.values) }
         } else {
             combine(
-                accelerometer.sensorState.filter { it.values.isNotEmpty() },
-                magnetometer.sensorState.filter { it.values.isNotEmpty() }
+                accelerometerSensor.sensorState.filter { it.values.isNotEmpty() },
+                magnetometerSensor.sensorState.filter { it.values.isNotEmpty() }
             ) { accel, mag -> fuseFromAccelMag(accel.values, mag.values) }
                 .conflate()
         }
 
         return combine(
             orientationFlow,
-            magnetometer.sensorState
+            magnetometerSensor.sensorState
         ) { orientation, magState ->
             orientation.copy(
                 accuracy = mapAccuracy(magState.accuracy),
@@ -69,23 +69,13 @@ class SensorRepositoryImpl(
             .sample(DATA_INTERVAL)
     }
 
-    private fun getScreenRotation(): Int {
-        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-            val displayManager = context.getSystemService(Context.DISPLAY_SERVICE) as DisplayManager
-            displayManager.getDisplay(Display.DEFAULT_DISPLAY)?.rotation ?: Surface.ROTATION_0
-        } else {
-            @Suppress("DEPRECATION")
-            val windowManager = context.getSystemService(Context.WINDOW_SERVICE) as WindowManager
-            windowManager.defaultDisplay.rotation
-        }
-    }
-
-    private fun remapMatrixBasedOnRotation(rotationMatrix: FloatArray): FloatArray {
+    @VisibleForTesting(otherwise = VisibleForTesting.PRIVATE)
+    internal fun remapMatrixBasedOnRotation(rotationMatrix: FloatArray): FloatArray {
         val remappedMatrix = FloatArray(9)
         val worldAxisForDeviceAxisX: Int
         val worldAxisForDeviceAxisY: Int
 
-        when (getScreenRotation()) {
+        when (rotationProvider()) {
             Surface.ROTATION_90 -> {
                 worldAxisForDeviceAxisX = SensorManager.AXIS_Y
                 worldAxisForDeviceAxisY = SensorManager.AXIS_MINUS_X
@@ -98,7 +88,7 @@ class SensorRepositoryImpl(
                 worldAxisForDeviceAxisX = SensorManager.AXIS_MINUS_Y
                 worldAxisForDeviceAxisY = SensorManager.AXIS_X
             }
-            else -> { // Surface.ROTATION_0
+            else -> {
                 worldAxisForDeviceAxisX = SensorManager.AXIS_X
                 worldAxisForDeviceAxisY = SensorManager.AXIS_Y
             }
@@ -145,8 +135,7 @@ class SensorRepositoryImpl(
 
         val success = SensorManager.getRotationMatrix(rotationMatrix, null, accelValues, magValues)
         if (!success) {
-            // getRotationMatrix возвращает false, если устройство в свободном падении
-            // или в near-magnetic-pole сингулярности — нужно решить, что возвращать в этом случае
+            // getRotationMatrix returns false if device is in free fall or at magnetic pole
         }
 
         val remappedMatrix = remapMatrixBasedOnRotation(rotationMatrix)
@@ -164,11 +153,16 @@ class SensorRepositoryImpl(
         )
     }
 
-    private fun mapAccuracy(raw: Int?): SensorAccuracy = when (raw) {
+    @VisibleForTesting(otherwise = VisibleForTesting.PRIVATE)
+    internal fun mapAccuracy(raw: Int?): SensorAccuracy = when (raw) {
         SensorManager.SENSOR_STATUS_ACCURACY_HIGH -> SensorAccuracy.HIGH
         SensorManager.SENSOR_STATUS_ACCURACY_MEDIUM -> SensorAccuracy.MEDIUM
         SensorManager.SENSOR_STATUS_ACCURACY_LOW -> SensorAccuracy.LOW
         else -> SensorAccuracy.UNRELIABLE
     }
+}
 
+private fun getScreenRotation(context: Context): Int {
+    val displayManager = context.getSystemService<DisplayManager>()
+    return displayManager?.getDisplay(Display.DEFAULT_DISPLAY)?.rotation ?: Surface.ROTATION_0
 }
