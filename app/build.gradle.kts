@@ -26,6 +26,21 @@ android {
                 "proguard-rules.pro"
             )
         }
+        create("benchmark") {
+            initWith(getByName("release"))
+            matchingFallbacks += listOf("release")
+            // Подписываем debug-ключом, чтобы запустить тест без production-сертификата
+            signingConfig = signingConfigs.getByName("debug")
+            // Отключаем debuggable, чтобы R8 работал в полноценном режиме
+            isDebuggable = false
+            // Применяем правила сжатия
+            isMinifyEnabled = true
+            isShrinkResources = true
+            proguardFiles(
+                getDefaultProguardFile("proguard-android-optimize.txt"),
+                "proguard-rules.pro"
+            )
+        }
     }
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11

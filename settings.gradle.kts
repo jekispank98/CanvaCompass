@@ -24,3 +24,4 @@ dependencyResolutionManagement {
 
 rootProject.name = "CustomCompass"
 include(":app")
+include(":macrobenchmark")

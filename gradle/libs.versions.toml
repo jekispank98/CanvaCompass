@@ -17,6 +17,8 @@ koin-plugin = "1.0.0"
 coroutines = "1.10.1"
 mockk = "1.13.17"
 turbine = "1.2.0"
+benchmark = "1.2.4"
+uiAutomator = "2.3.0"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -49,7 +51,12 @@ koin-compose = { group = "io.insert-koin", name = "koin-androidx-compose", versi
 koin-test = { group = "io.insert-koin", name = "koin-test", version.ref = "koin" }
 koin-test-junit4 = { group = "io.insert-koin", name = "koin-test-junit4", version.ref = "koin" }
 
+# Tests
+benchmark = { group = "androidx.benchmark", name = "benchmark-macro-junit4", version.ref = "benchmark" }
+uiautomator = { group = "androidx.test", name = "uiautomator:uiautomator", version.ref = "uiAutomator" }
 [plugins]
+kotlin = { id = "org.jetbrains.kotlin.android" }
+test = { id = "com.android.test" }
 android-application = { id = "com.android.application", version.ref = "agp" }
 compose-compiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
 koin-compiler = { id = "io.insert-koin.compiler.plugin", version.ref = "koin-plugin" }
