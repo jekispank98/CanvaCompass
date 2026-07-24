@@ -4,6 +4,11 @@ plugins {
     alias(libs.plugins.koin.compiler)
 }
 
+koinCompiler {
+    userLogs = true
+    compileSafety = true
+}
+
 android {
     namespace = "dev.jekis.canvacompass"
     compileSdk = 36
@@ -78,10 +83,6 @@ dependencies {
     implementation(libs.koin.android)
     implementation(libs.koin.compose)
 
-    koinCompiler {
-        userLogs = true
-        compileSafety = true
-    }
     testImplementation(libs.koin.test)
     testImplementation(libs.koin.test.junit4)
     testImplementation(libs.junit)
