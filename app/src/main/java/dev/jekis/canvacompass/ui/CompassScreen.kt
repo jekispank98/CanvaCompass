@@ -20,6 +20,9 @@ import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.withTransform
+import androidx.compose.ui.platform.LocalContext
+import android.app.Activity
+import android.util.Log
 import androidx.compose.ui.text.TextMeasurer
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.drawText
@@ -38,6 +41,13 @@ fun CompassScreen(
     viewModel: CompassViewModel
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val context = LocalContext.current
+
+    LaunchedEffect(Unit) {
+        Log.d("check_compose", "COMPOSE")
+        (context as? Activity)?.reportFullyDrawn()
+    }
+
     val modifier = Modifier
 
     CompassScreenContent(

@@ -4,7 +4,7 @@ plugins {
 
 android {
     namespace = "com.example.macrobenchmark"
-    compileSdk = 34
+    compileSdk = 36
 
     buildTypes {
         create("benchmark") {
@@ -15,7 +15,7 @@ android {
     }
     defaultConfig {
         minSdk = 28
-        targetSdk = 34
+        targetSdk = 36
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
     targetProjectPath = ":app"

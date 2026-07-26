@@ -66,6 +66,7 @@ dependencies {
     implementation(libs.androidx.navigation.fragment.ktx)
     implementation(libs.androidx.navigation.ui.ktx)
     implementation(libs.androidx.lifecycle.viewmodel.ktx)
+    implementation(libs.androidx.profileinstaller)
 
     // Compose
     implementation(platform(libs.androidx.compose.bom))

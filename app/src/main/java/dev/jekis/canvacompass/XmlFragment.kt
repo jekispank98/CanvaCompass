@@ -34,8 +34,13 @@ class XmlFragment : Fragment() {
 
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                var firstUpdate = true
                 viewModel.uiState.collect { state ->
                     binding.compassView.setAzimuth(state.azimuth)
+                    if (firstUpdate) {
+                        requireActivity().reportFullyDrawn()
+                        firstUpdate = false
+                    }
                 }
             }
         }
