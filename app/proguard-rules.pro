@@ -19,3 +19,14 @@
 # If you keep the line number information, uncomment this to
 # hide the original source file name.
 #-renamesourcefileattribute SourceFile
+
+# Правила для библиотеки Microbenchmark и тестового раннера
+-dontwarn androidx.tracing.**
+-keep class androidx.tracing.** { *; }
+-keep class androidx.benchmark.** { *; }
+-keep class androidx.test.** { *; }
+
+# Правила для сохранения классов Kotlin, необходимых тестовому раннеру
+-dontwarn kotlin.**
+-keep class kotlin.** { *; }
+-keep class kotlin.jvm.internal.** { *; }
